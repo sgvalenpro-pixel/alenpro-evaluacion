@@ -1,2 +1,2 @@
 # alenpro-evaluacion
-Generador de Auto-Evaluacion ALEMN+PRO
+Generador de Auto-Evaluacion ALEN+PRO
