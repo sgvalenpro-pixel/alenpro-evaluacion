@@ -167,6 +167,7 @@ table.reg td{padding:6px 8px;border:1px solid #ddd;vertical-align:top}
     <summary style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#555;cursor:pointer;list-style:none">5 · Gestión de empleados <span style="font-weight:400;text-transform:none;color:#888">— retiros, correcciones, nuevos ingresos</span></summary>
     <div style="height:2px;background:#FFD400;margin:8px 0 16px"></div>
     <p class="nota" style="margin-bottom:12px">Los marcados como <b>Retiro</b> salen del desplegable de evaluación pero permanecen en los registros. La antigüedad se calcula sola desde la fecha de ingreso.</p>
+    <div class="field" style="margin-bottom:12px"><input type="text" id="efBuscar" placeholder="🔎 Buscar por nombre, área o cargo…"></div>
     <div class="tbl-wrap" id="empAdminWrap"></div>
     <div class="empadmin-form" style="border-top:1px solid #eee;margin-top:16px;padding-top:14px">
       <div class="card-title" id="empFormTitulo" style="border:none;padding:0;margin-bottom:12px">➕ Nuevo empleado</div>
@@ -314,8 +315,14 @@ let empEditIdx=-1;
 function renderEmpAdmin(){
   const w=$("empAdminWrap"); if(!w) return;
   if(!EMP.length){w.innerHTML='<p class="nota">Sin empleados cargados.</p>';return;}
-  w.innerHTML=`<table class="reg"><thead><tr><th>Nombre</th><th>Área</th><th>Cargo</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>`+
-    EMP.map((e,i)=>`<tr>
+  const q=($("efBuscar")?.value||"").trim().toUpperCase();
+  let rows=EMP.map((e,i)=>({e,i}));
+  if(q) rows=rows.filter(o=>[o.e.n,o.e.area,o.e.cargo].some(x=>String(x||"").toUpperCase().includes(q)));
+  const activos=EMP.filter(e=>e.activo!==false).length;
+  if(!rows.length){w.innerHTML=`<p class="nota">Sin coincidencias para "${q}".</p>`;return;}
+  w.innerHTML=`<p class="nota" style="margin-bottom:6px">${rows.length} de ${EMP.length} empleado(s) · ${activos} activo(s)</p>`+
+    `<table class="reg"><thead><tr><th>Nombre</th><th>Área</th><th>Cargo</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>`+
+    rows.map(({e,i})=>`<tr>
       <td>${e.n||""}</td><td>${e.area||""}</td><td>${e.cargo||""}</td>
       <td>${e.activo===false?'<span style="color:#c62828;font-weight:700">Retiro</span>':'<span style="color:#2e7d32;font-weight:700">Activo</span>'}</td>
       <td style="white-space:nowrap">
@@ -558,11 +565,19 @@ async function login(){
 function setupAuth(){
   fbAuth.onAuthStateChanged(fbAuth.auth, async (u)=>{
     if(u){ mostrarGate(false); setUser(u); await cargarEmpleados(); llenarEmp(); renderEmpAdmin(); await pintarReg(); }
-    else { setUser(null); mostrarGate(true); }
+    else {
+      setUser(null);
+      ["loginEmail","loginPass"].forEach(id=>{const el=$(id);if(el)el.value="";});
+      $("loginErr").textContent="";
+      mostrarGate(true);
+      $("loginEmail").focus();
+    }
   });
   $("btnLogin").addEventListener("click",login);
   $("loginPass").addEventListener("keydown",e=>{ if(e.key==="Enter") login(); });
-  $("btnSalir").addEventListener("click",()=>fbAuth.signOut(fbAuth.auth));
+  $("btnSalir").addEventListener("click",()=>{
+    if(confirm("¿Seguro que deseas cerrar la sesión?")) fbAuth.signOut(fbAuth.auth);
+  });
 }
 
 window.addEventListener("DOMContentLoaded",async()=>{
@@ -575,6 +590,7 @@ window.addEventListener("DOMContentLoaded",async()=>{
   $("btnClr").addEventListener("click",async()=>{if(confirm("¿Borrar SOLO el respaldo local de este navegador? (El histórico de Firebase no se toca)")){localStorage.removeItem("eval_reg");await pintarReg();}});
   $("btnEmpGuardar").addEventListener("click",empGuardar);
   $("btnEmpCancelar").addEventListener("click",empFormReset);
+  $("efBuscar").addEventListener("input",renderEmpAdmin);
   await initFirebase();
   if(modo==="online" && fbAuth){ setupAuth(); }   // el gate se cierra al autenticar (onAuthStateChanged)
   else { await cargarEmpleados(); llenarEmp(); renderEmpAdmin(); await pintarReg(); }  // modo local
