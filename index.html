@@ -163,6 +163,11 @@ table.reg td{padding:6px 8px;border:1px solid #ddd;vertical-align:top}
     <div class="field"><label>Compromisos por parte del empleado</label><textarea id="compromisos" rows="3" placeholder="Compromisos acordados…"></textarea></div>
   </div>
 
+  <div class="card" style="text-align:center">
+    <p class="nota" style="margin-bottom:12px">Cuando termines de calificar y diligenciar, confirma la evaluación para registrarla y generar el PDF (compartir o imprimir).</p>
+    <button class="btn-gen" id="btnConfirmar" style="width:100%;padding:15px;font-size:16px">✓ Confirmar evaluación y generar PDF</button>
+  </div>
+
   <details class="card" id="adminEmpCard">
     <summary style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#555;cursor:pointer;list-style:none">5 · Gestión de empleados <span style="font-weight:400;text-transform:none;color:#888">— retiros, correcciones, nuevos ingresos</span></summary>
     <div style="height:2px;background:#FFD400;margin:8px 0 16px"></div>
@@ -203,11 +208,11 @@ table.reg td{padding:6px 8px;border:1px solid #ddd;vertical-align:top}
 <div class="totalbar">
   <div>
     <div class="lbl">Puntaje total</div>
-    <div><span class="val" id="totVal">0.0</span> <span class="max">/ 100.3</span></div>
+    <div><span class="val" id="totVal">0.0</span> <span class="max">/ 5.0</span></div>
   </div>
   <div class="prog"><i id="totProg"></i></div>
   <div class="nivel" id="totNivel">Sin calificar</div>
-  <button class="btn-gen" id="btnGen">⬇ Generar documento</button>
+  <button class="btn-gen" id="btnGen">⬇ Confirmar y generar PDF</button>
 </div>
 
 <script>
@@ -242,15 +247,14 @@ const LOGO_URI="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(LOGO_SVG);
 const $=id=>document.getElementById(id);
 const scores={}; // "s-i" -> valor
 
-let TOTMAX=0; SEC.forEach((s,si)=>TOTMAX+=s.items.length); TOTMAX=(TOTMAX*5*PESO);
+const TOTMAX=5; // escala 0 a 5
 
 function nivelDe(t){
-  const p=t/TOTMAX*100;
-  if(p>=90)return["Excelente","#00B050"];
-  if(p>=75)return["Muy bueno","#5DCAA5"];
-  if(p>=60)return["Bueno","#BA7517"];
-  if(p>=40)return["Regular","#D85A30"];
-  if(p>0)  return["Deficiente","#A32D2D"];
+  if(t>=4.5)return["Excelente","#00B050"];
+  if(t>=3.5)return["Muy bueno","#5DCAA5"];
+  if(t>=2.5)return["Bueno","#BA7517"];
+  if(t>=1.5)return["Regular","#D85A30"];
+  if(t>0)   return["Deficiente","#A32D2D"];
   return["Sin calificar","#888"];
 }
 
@@ -388,17 +392,22 @@ function pintarSecciones(){
 }
 
 function seccionTotal(si){
-  let sum=0;
-  for(let ii=0;ii<SEC[si].items.length;ii++){const v=scores[si+"-"+ii];if(v)sum+=v*PESO;}
-  return sum;
+  let sum=0,c=0;
+  for(let ii=0;ii<SEC[si].items.length;ii++){const v=scores[si+"-"+ii];if(v){sum+=v;c++;}}
+  return c?sum/c:0;   // promedio 0–5 de la sección
+}
+function totalProm(){
+  let sum=0,c=0;
+  SEC.forEach((s,si)=>{for(let ii=0;ii<s.items.length;ii++){const v=scores[si+"-"+ii];if(v){sum+=v;c++;}}});
+  return c?sum/c:0;   // promedio general 0–5
 }
 function recalc(){
-  let tot=0;
-  SEC.forEach((s,si)=>{const st=seccionTotal(si);tot+=st;$("pts-"+si).textContent=st.toFixed(1);});
+  SEC.forEach((s,si)=>{$("pts-"+si).textContent=seccionTotal(si).toFixed(1);});
+  const tot=totalProm();
   $("totVal").textContent=tot.toFixed(1);
   $("totProg").style.width=Math.min(100,tot/TOTMAX*100)+"%";
   const[txt,col]=nivelDe(tot);
-  const nv=$("totNivel");nv.textContent=txt;nv.style.background=col;nv.style.color=(col==="#888")?"#fff":"#fff";
+  const nv=$("totNivel");nv.textContent=txt;nv.style.background=col;nv.style.color="#fff";
   return tot;
 }
 
@@ -412,10 +421,10 @@ function htmlDoc(){
   const filasSec=SEC.map((s,si)=>{
     const its=s.items.map((txt,ii)=>{
       const v=scores[si+"-"+ii]||"";
-      return `<tr><td>${txt}</td><td class="c">${v}</td><td class="c">${v?(v*PESO).toFixed(3):""}</td></tr>`;
+      return `<tr><td>${txt}</td><td class="c">${v}</td></tr>`;
     }).join("");
-    return `<tr class="sec"><td colspan="3">${si+1}. ${s.nombre.toUpperCase()}</td></tr>${its}
-            <tr class="sub"><td colspan="2">PUNTAJE OBTENIDO</td><td class="c">${seccionTotal(si).toFixed(3)}</td></tr>`;
+    return `<tr class="sec"><td colspan="2">${si+1}. ${s.nombre.toUpperCase()}</td></tr>${its}
+            <tr class="sub"><td>PROMEDIO DE LA SECCIÓN</td><td class="c">${seccionTotal(si).toFixed(1)} / 5</td></tr>`;
   }).join("");
   return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>FOR-TH-007 · ${e.n}</title>
 <style>
@@ -452,9 +461,9 @@ h3{font-size:9.5pt;margin:12px 0 3px;background:#00B050;color:#fff;padding:4px 7
   <tr><td><b>Edad:</b> ${e.edad?e.edad+" años":""}</td><td><b>Género:</b> ${e.gen}</td><td><b>Ingreso:</b> ${fmtFecha(e.ing)}</td><td><b>Antigüedad:</b> ${antiguedad(e.ing)}</td></tr>
 </table>
 <table>
-  <tr><th>CRITERIO</th><th>CALIF. (1-5)</th><th>PUNTAJE</th></tr>
+  <tr><th>CRITERIO</th><th>CALIFICACIÓN (1–5)</th></tr>
   ${filasSec}
-  <tr><td class="tot" colspan="2">PUNTAJE TOTAL — NIVEL: ${nivel}</td><td class="tot">${tot.toFixed(1)}</td></tr>
+  <tr><td class="tot">PUNTAJE TOTAL (0–5) — NIVEL: ${nivel}</td><td class="tot">${tot.toFixed(1)} / 5</td></tr>
 </table>
 <h3>FORTALEZAS Y ÁREAS DE OPORTUNIDAD</h3><div class="txt">${$("fortalezas").value||""}</div>
 <h3>SUGERENCIAS PARA MEJORAR</h3><div class="txt">${$("sugerencias").value||""}</div>
@@ -477,7 +486,7 @@ function setEstado(m,ok){const e=$("estado");e.textContent=m;e.className="estado
 /* ---- histórico (Firebase compartido + respaldo local, formato hoja DATOS) ---- */
 async function guardarReg(e,tot){
   const fila={NOMBRE:e.n,AREA:e.area};
-  SEC.forEach(s=>{fila[s.nombre]=seccionTotal(SEC.indexOf(s)).toFixed(3);});
+  SEC.forEach(s=>{fila[s.nombre]=seccionTotal(SEC.indexOf(s)).toFixed(2);});
   fila.FORTALEZAS=$("fortalezas").value;fila.SUGERENCIAS=$("sugerencias").value;
   fila.COMPROMISOS=$("compromisos").value;fila.TOTAL=tot.toFixed(2);
   fila.EVALUADOR=$("evalNom").value;
@@ -524,19 +533,33 @@ async function exportCSV(){
   a.download="historico_evaluaciones_alenpro.csv";a.click();
 }
 
-async function onGen(){
-  if($("empSel").value===""){setEstado("⚠ Selecciona el empleado evaluado.",false);return;}
+function imprimirDoc(html){
+  const f=document.createElement("iframe");
+  f.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0";
+  document.body.appendChild(f);
+  const d=f.contentWindow.document; d.open(); d.write(html); d.close();
+  setTimeout(()=>{ try{f.contentWindow.focus();f.contentWindow.print();}catch(e){} },500);
+  setTimeout(()=>{ f.remove(); },60000);
+}
+
+async function onConfirmar(){
+  if($("empSel").value===""){setEstado("⚠ Selecciona el empleado evaluado.",false);window.scrollTo({top:0,behavior:"smooth"});return;}
+  const e=EMP[$("empSel").value];
+  const tot=recalc();
+  const[nivel]=nivelDe(tot);
   const faltan=SEC.reduce((a,s,si)=>a+s.items.filter((_,ii)=>!scores[si+"-"+ii]).length,0);
-  if(faltan>0 && !confirm(`Quedan ${faltan} ítem(s) sin calificar. ¿Generar de todas formas?`))return;
-  const tot=recalc();const e=EMP[$("empSel").value];
-  $("btnGen").disabled=true;
+  const msg=`¿Confirmas la evaluación de ${e.n}?\n\n`+
+            `Puntaje total: ${tot.toFixed(1)} / 5  (${nivel})\n`+
+            (faltan>0?`⚠ Quedan ${faltan} ítem(s) sin calificar.\n`:``)+
+            `\nSe guardará en el histórico y se abrirá el documento para guardar como PDF (compartir) o imprimir.`;
+  if(!confirm(msg))return;
+  $("btnGen").disabled=true; $("btnConfirmar").disabled=true;
   await guardarReg(e,tot);
   await pintarReg();
-  const nom=("FOR-TH-007_"+e.n+"_"+(new Date().toISOString().slice(0,10))).replace(/[^a-zA-Z0-9_-]/g,"_");
-  descargar(htmlDoc(),nom+".html");
+  imprimirDoc(htmlDoc());
   const dest = modo==="online" ? "Firebase (histórico compartido)" : "el respaldo local de este navegador";
-  setEstado(`✓ Documento de ${e.n} generado (total ${tot.toFixed(1)}). Ábrelo y usa Ctrl+P → Guardar como PDF. Guardado en ${dest}.`,true);
-  $("btnGen").disabled=false;
+  setEstado(`✓ Evaluación de ${e.n} confirmada — ${tot.toFixed(1)}/5 (${nivel}). Guardada en ${dest}. En el cuadro de impresión elige “Guardar como PDF” para compartir, o tu impresora.`,true);
+  $("btnGen").disabled=false; $("btnConfirmar").disabled=false;
 }
 
 /* ---- autenticación ---- */
@@ -585,7 +608,8 @@ window.addEventListener("DOMContentLoaded",async()=>{
   llenarEmp();pintarSecciones();recalc();renderEmpAdmin();
   $("fechaEval").value=new Date().toISOString().slice(0,10);
   $("empSel").addEventListener("change",pintarEmp);
-  $("btnGen").addEventListener("click",onGen);
+  $("btnGen").addEventListener("click",onConfirmar);
+  $("btnConfirmar").addEventListener("click",onConfirmar);
   $("btnCsv").addEventListener("click",exportCSV);
   $("btnClr").addEventListener("click",async()=>{if(confirm("¿Borrar SOLO el respaldo local de este navegador? (El histórico de Firebase no se toca)")){localStorage.removeItem("eval_reg");await pintarReg();}});
   $("btnEmpGuardar").addEventListener("click",empGuardar);
