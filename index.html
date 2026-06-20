@@ -166,6 +166,7 @@ table.reg td{padding:6px 8px;border:1px solid #ddd;vertical-align:top}
   <div class="card" style="text-align:center">
     <p class="nota" style="margin-bottom:12px">Cuando termines de calificar y diligenciar, confirma la evaluación para registrarla y generar el PDF (compartir o imprimir).</p>
     <button class="btn-gen" id="btnConfirmar" style="width:100%;padding:15px;font-size:16px">✓ Confirmar evaluación y generar PDF</button>
+    <button class="btn-sec" id="btnLimpiar" style="width:100%;margin-top:10px">Limpiar formulario</button>
   </div>
 
   <details class="card" id="adminEmpCard">
@@ -542,6 +543,14 @@ function imprimirDoc(html){
   setTimeout(()=>{ f.remove(); },60000);
 }
 
+function limpiarFormulario(){
+  $("empSel").value=""; pintarEmp();
+  for(const k in scores) delete scores[k];
+  document.querySelectorAll(".scale button.on").forEach(b=>b.classList.remove("on"));
+  $("fortalezas").value="";$("sugerencias").value="";$("compromisos").value="";
+  recalc();
+}
+
 async function onConfirmar(){
   if($("empSel").value===""){setEstado("⚠ Selecciona el empleado evaluado.",false);window.scrollTo({top:0,behavior:"smooth"});return;}
   const e=EMP[$("empSel").value];
@@ -558,7 +567,8 @@ async function onConfirmar(){
   await pintarReg();
   imprimirDoc(htmlDoc());
   const dest = modo==="online" ? "Firebase (histórico compartido)" : "el respaldo local de este navegador";
-  setEstado(`✓ Evaluación de ${e.n} confirmada — ${tot.toFixed(1)}/5 (${nivel}). Guardada en ${dest}. En el cuadro de impresión elige “Guardar como PDF” para compartir, o tu impresora.`,true);
+  setEstado(`✓ Evaluación de ${e.n} confirmada — ${tot.toFixed(1)}/5 (${nivel}). Guardada en ${dest}. En el cuadro de impresión elige “Guardar como PDF” para compartir, o tu impresora. El formulario quedó listo para una nueva evaluación.`,true);
+  limpiarFormulario();
   $("btnGen").disabled=false; $("btnConfirmar").disabled=false;
 }
 
@@ -610,6 +620,7 @@ window.addEventListener("DOMContentLoaded",async()=>{
   $("empSel").addEventListener("change",pintarEmp);
   $("btnGen").addEventListener("click",onConfirmar);
   $("btnConfirmar").addEventListener("click",onConfirmar);
+  $("btnLimpiar").addEventListener("click",()=>{if(confirm("¿Limpiar el formulario? Se borrarán el empleado, las calificaciones y los textos no confirmados (no afecta lo ya guardado).")) limpiarFormulario();});
   $("btnCsv").addEventListener("click",exportCSV);
   $("btnClr").addEventListener("click",async()=>{if(confirm("¿Borrar SOLO el respaldo local de este navegador? (El histórico de Firebase no se toca)")){localStorage.removeItem("eval_reg");await pintarReg();}});
   $("btnEmpGuardar").addEventListener("click",empGuardar);
