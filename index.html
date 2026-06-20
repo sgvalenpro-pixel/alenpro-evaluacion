@@ -14,7 +14,28 @@ body{font-family:Arial,Helvetica,sans-serif;background:#f4f4f2;color:#1a1a1a;fon
 .logo::after{height:10px;width:32px;top:11px;left:0}
 .header h1{font-size:16px;font-weight:700}
 .header p{font-size:11px;opacity:.55;margin-top:2px}
-.codechip{margin-left:auto;background:#2a2a2a;color:#FFD400;font-size:11px;font-weight:700;padding:5px 11px;border-radius:20px;font-family:'Courier New',monospace;white-space:nowrap}
+.codechip{background:#2a2a2a;color:#FFD400;font-size:11px;font-weight:700;padding:5px 11px;border-radius:20px;font-family:'Courier New',monospace;white-space:nowrap}
+.conn{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;white-space:nowrap}
+.conn .dot{width:8px;height:8px;border-radius:50%;background:#888;flex:0 0 auto}
+.conn .dot.online{background:#4caf50}.conn .dot.local{background:#ff9800}
+.userbox{display:none;align-items:center;gap:8px;font-size:11px}
+.userbox .who{opacity:.7;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn-salir{background:#333;color:#fff;border:1px solid #555;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:Arial}
+.btn-salir:hover{background:#444}
+.gate{position:fixed;inset:0;background:#1a1a1a;z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.gate.show{display:flex}
+.gate-card{background:#fff;border-radius:14px;padding:28px 26px;max-width:380px;width:100%;text-align:center}
+.gate-logo{width:52px;height:52px;position:relative;margin:0 auto 14px}
+.gate-logo::before,.gate-logo::after{content:"";position:absolute;background:#FFD400;border-radius:3px}
+.gate-logo::before{width:16px;height:52px;left:18px;top:0}
+.gate-logo::after{height:16px;width:52px;top:18px;left:0}
+.gate h2{font-size:17px;margin-bottom:4px}
+.gate .sub{font-size:12px;color:#888;margin-bottom:20px}
+.gate input{width:100%;padding:11px 13px;border:1.5px solid #ccc;border-radius:8px;font-size:15px;margin-bottom:11px;font-family:Arial}
+.gate input:focus{outline:none;border-color:#FFD400;box-shadow:0 0 0 3px #fff6cc}
+.gate .btn-login{width:100%;padding:12px;background:#FFD400;color:#1a1a1a;font-size:15px;font-weight:700;border:none;border-radius:9px;cursor:pointer;font-family:Arial}
+.gate .btn-login:hover{background:#e6c000}
+.gate .err{color:#c62828;font-size:12px;margin-top:10px;min-height:16px}
 .main{max-width:880px;margin:0 auto;padding:20px 16px 120px}
 .card{background:#fff;border:1px solid #ddd;border-radius:12px;padding:20px;margin-bottom:16px}
 .card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#555;border-bottom:2px solid #FFD400;padding-bottom:8px;margin-bottom:16px}
@@ -67,11 +88,27 @@ table.reg td{padding:6px 8px;border:1px solid #ddd;vertical-align:top}
 </head>
 <body>
 
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <div class="gate-logo"></div>
+    <h2>Evaluación de Desempeño</h2>
+    <div class="sub">Acceso restringido · ALEN+PRO Talento Humano</div>
+    <input type="email" id="loginEmail" placeholder="Correo" autocomplete="username">
+    <input type="password" id="loginPass" placeholder="Contraseña" autocomplete="current-password">
+    <button class="btn-login" id="btnLogin">Ingresar</button>
+    <div class="err" id="loginErr"></div>
+  </div>
+</div>
+
 <div class="header">
   <div class="logo"></div>
   <div>
     <h1>Evaluación de Desempeño</h1>
     <p>Sistema de Gestión · ALEN+PRO</p>
+  </div>
+  <div class="conn">
+    <span class="dot" id="dot"></span><span id="connTxt">Iniciando…</span>
+    <span class="userbox" id="userBox"><span class="who" id="userWho"></span><button class="btn-salir" id="btnSalir">Salir</button></span>
   </div>
   <div class="codechip">FOR-TH-007 · v00</div>
 </div>
@@ -147,6 +184,27 @@ table.reg td{padding:6px 8px;border:1px solid #ddd;vertical-align:top}
 const EMP=[{"n": "ALVAREZ DIAZ MARYORY", "area": "ADMON", "cargo": "DIRECTORA DE CONTABILIDAD", "gen": "F", "edad": 49, "ing": "01/01/2024", "ant": "2AÑOS,5MESES,19DIAS"}, {"n": "CASTILLO ORDOÑEZ CARLOS ANTONIO", "area": "PRODUCCION", "cargo": "OPERARIO DE PRODUCCIÓN, micro y preparacion", "gen": "M", "edad": 50, "ing": "01/09/2020", "ant": "5AÑOS,9MESES,19DIAS"}, {"n": "COLORADO ESCOBAR JONATHAN", "area": "PRODUCCION", "cargo": "OPERARIO DE PRODUCCIÓN, extrucion 1 y 2, extraccion ymicro", "gen": "M", "edad": 24, "ing": "11/04/2023", "ant": "3AÑOS,2MESES,9DIAS"}, {"n": "CORRALES MUÑOZ ERICA YULIANA", "area": "CALIDAD", "cargo": "AUXILIAR DE CALIDAD", "gen": "F", "edad": 37, "ing": "01/02/2023", "ant": "3AÑOS,4MESES,19DIAS"}, {"n": "ESCOBAR MONTOYA JOSE GILBERTO", "area": "CIF", "cargo": "PORTERO", "gen": "M", "edad": 61, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "GARCIA OSPINA JUAN CARLOS", "area": "PRODUCCION", "cargo": "DIRECTOR DE PRODUCCIÓN Y COMPRAS", "gen": "M", "edad": 48, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "GARCIA PELAEZ VALENTINA", "area": "CALIDAD", "cargo": "ANALISTA DE LABORATORIO", "gen": "F", "edad": 29, "ing": "07/01/2025", "ant": "1AÑOS,5MESES,13DIAS"}, {"n": "GARZON GRISALES FRANCISCO JAVIER", "area": "CIF", "cargo": "PORTERO", "gen": "M", "edad": 57, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "GARZON RINCON TATIANA", "area": "ADMON", "cargo": "DIRECTORA SGSST Y AMBIENTAL", "gen": "F", "edad": 23, "ing": "29/06/2024", "ant": "1AÑOS,11MESES,22DIAS"}, {"n": "GUTIERREZ VASQUEZ RODRIGO DE JESUS", "area": "ADMON", "cargo": "GERENTE", "gen": "M", "edad": 60, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "GUTIERREZ VELASQUEZ DANIELA", "area": "ADMON", "cargo": "CONTROL INTERNO", "gen": "F", "edad": 32, "ing": "18/02/2021", "ant": "5AÑOS,4MESES,2DIAS"}, {"n": "GUTIERREZ VELASQUEZ SAMUEL", "area": "COMERCIAL", "cargo": "DIRECTOR COMERCIAL", "gen": "M", "edad": 33, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "HERNANDEZ RAMIREZ SANTIAGO", "area": "PRODUCCION", "cargo": "OPERARIO DE PRODUCCION, Extrusion", "gen": "M", "edad": 23, "ing": "01/02/2024", "ant": "2AÑOS,4MESES,19DIAS"}, {"n": "JIMENEZ RUIZ JAVIER ANTONIO", "area": "CIF", "cargo": "PORTERO", "gen": "M", "edad": 46, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "MARULANDA MENDEZ BRAHIAN ANIBAL", "area": "PRODUCCION", "cargo": "SUPERVISOR DE PRODUCCIÓN", "gen": "M", "edad": 25, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "MAZUERA CASTILLO ANA MILENA", "area": "ADMON", "cargo": "DIRECTORA ADMINISTRATIVA Y FINANCIERA", "gen": "F", "edad": 43, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "MERCHAN JUAN CARLOS", "area": "CIF", "cargo": "PORTERO", "gen": "M", "edad": 59, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "MESA ORTIZ MONICA LILIANA", "area": "ADMON", "cargo": "AUXILIAR SERVICIOS GENERALES OFICINA", "gen": "F", "edad": 56, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "OBANDO CARDOZA MARIA ALEJANDRA", "area": "ADMON", "cargo": "DIRECTORA DE TALENTO HUMANO", "gen": "F", "edad": 27, "ing": "01/04/2024", "ant": "2AÑOS,2MESES,19DIAS"}, {"n": "OCAMPO SANCHEZ LINA MARCELA", "area": "CALIDAD", "cargo": "DIRECTOR DE CALIDAD", "gen": "F", "edad": 33, "ing": "04/09/2023", "ant": "2AÑOS,9MESES,16DIAS"}, {"n": "RENDON CONTRERAS JEIFER", "area": "PRODUCCION", "cargo": "SUPERVISOR DE PRODUCCIÓN", "gen": "M", "edad": 29, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "RIOS SANCHEZ CRISTIAN DAVID", "area": "PRODUCCION", "cargo": "SUPERVISOR DE PRODUCCIÓN", "gen": "M", "edad": 34, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "VELEZ PULGARIN CLAUDIA BERENICE", "area": "PRODUCCION", "cargo": "OPERARIO DE BASCULA", "gen": "F", "edad": 40, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}];
 const SEC=[{"nombre": "Responsabilidad y Compromiso", "items": ["Cumple con las tareas asignadas en tiempo y forma", "Muestra compromiso con los objetivos del equipo y de la empresa", "Es responsable con el uso de los recursos y el tiempo de la empresa", "Cumple con las normativas y políticas de la empresa", "Demuestra proactividad para resolver problemas y superar obstáculos"]}, {"nombre": "Calidad y Productividad", "items": ["El empleado mantiene altos estándares de calidad en su trabajo", "Es eficiente en la ejecución de sus tareas diarias", "Realiza el trabajo sin necesidad de correcciones constantes", "Es capaz de manejar adecuadamente su carga de trabajo sin comprometer la calidad", "Demuestra iniciativa."]}, {"nombre": "Adaptabilidad y Flexibilidad", "items": ["Se adapta bien a los cambios en los procesos o tareas", "Muestra flexibilidad ante nuevas responsabilidades o situaciones imprevistas", "Es capaz de gestionar múltiples tareas o prioridades sin perder eficiencia", "Acepta bien las críticas constructivas y las utiliza para mejorar", "Identifica áreas de mejora personal y profesional y trabaja en ellas"]}, {"nombre": "Trabajo en Equipo", "items": ["Colabora de manera efectiva con otros miembros del equipo", "Apoya y contribuye activamente a un ambiente de trabajo armonioso", "Comparte su conocimiento y experiencia con los demás cuando es necesario", "Participa activamente en las reuniones o discusiones de equipo", "Está dispuesto a hacer un esfuerzo adicional cuando es necesario.", "Ayuda a mantener un ambiente de trabajo armonioso y colaborativo"]}, {"nombre": "Comunicación", "items": ["Se comunica de manera clara y efectiva con sus compañeros y superiores", "Escucha atentamente las instrucciones y sugerencias, y actúa en consecuencia", "Hace preguntas o busca clarificaciones cuando algo no está claro", "Informa adecuadamente a sus superiores y compañeros sobre el progreso de su trabajo", "Fomenta un diálogo abierto y directo en su entorno laboral"]}, {"nombre": "Mejora Continua", "items": ["El empleado busca activamente formas de mejorar su rendimiento o el del equipo", "Propone nuevas ideas o soluciones para mejorar los procesos", "Demuestra iniciativa para asumir nuevas responsabilidades", "Busca activamente retroalimentación para mejorar su desempeño", "Mantiene una actitud positiva y proactiva en su trabajo diario.", "Se adapta con facilidad a nuevos procesos, tareas, directrices y normativas."]}, {"nombre": "Resolución de Problemas", "items": ["Identifica y aborda los problemas con rapidez y eficacia", "Busca soluciones creativas o alternativas ante un obstáculo", "Es capaz de gestionar problemas urgentes sin afectar negativamente el flujo de trabajo", "Colabora con otros para encontrar soluciones cuando es necesario", "Demuestra flexibilidad y apertura al cambio en situaciones imprevistas.", "Mantiene la calma y el control en situaciones complejas.", "Considera las implicaciones de sus acciones antes de ejecutarlas."]}, {"nombre": "Enfoque a Resultados", "items": ["El empleado logra cumplir con los objetivos individuales y del equipo", "Es capaz de trabajar de manera consistente para alcanzar los resultados esperados", "Demuestra persistencia y enfoque para superar desafíos y lograr metas", "Demuestra compromiso con el logro de metas individuales y organizacionales.", "Tiene acabativa en las tareas"]}];
 const PESO=0.456;
+/* ===== Firebase (proyecto alenpro-inventario, nodo evaluaciones_desempeno) ===== */
+const FB_URL="https://alenpro-inventario-default-rtdb.firebaseio.com";
+const FB_NODE="evaluaciones_desempeno";
+/* === Pega aquí la config de tu app web Firebase (Configuración del proyecto → Tus apps → SDK) === */
+const FB_API_KEY="TU_API_KEY";
+const FB_AUTH_DOMAIN="alenpro-inventario.firebaseapp.com";
+let modo="local",fbDB=null;
+let fbAuth=null;
+async function initFirebase(){
+  try{
+    const {initializeApp}=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+    const db=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
+    const au=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+    const app=initializeApp({apiKey:FB_API_KEY,authDomain:FB_AUTH_DOMAIN,databaseURL:FB_URL});
+    fbDB={db:db.getDatabase(app),...db};
+    fbAuth={auth:au.getAuth(app),...au}; modo="online";
+  }catch(e){modo="local";}
+  const dot=document.getElementById("dot"),txt=document.getElementById("connTxt");
+  if(dot)dot.className="dot "+(modo==="online"?"online":"local");
+  if(txt)txt.textContent=modo==="online"?"Firebase conectado":"Modo local";
+}
 const ESCALA=["DEFICIENTE","REGULAR","BUENO","MUY BUENO","EXCELENTE"];
 const LOGO_SVG=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 230"><rect width="220" height="230" fill="white"/><rect x="76" y="6" width="52" height="182" rx="24" fill="#FFD400"/><rect x="6" y="76" width="182" height="52" rx="24" fill="#FFD400"/><text x="108" y="210" font-family="Arial" font-size="18" font-weight="bold" fill="#1a1a1a" text-anchor="middle" letter-spacing="1">ALEN</text><text x="148" y="210" font-family="Arial" font-size="18" font-weight="bold" fill="#FFD400" text-anchor="middle">+</text><text x="178" y="210" font-family="Arial" font-size="18" font-weight="bold" fill="#1a1a1a" text-anchor="middle" letter-spacing="1">PRO</text></svg>`;
 const LOGO_URI="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(LOGO_SVG);
@@ -286,26 +344,49 @@ function descargar(html,nombre){
 }
 function setEstado(m,ok){const e=$("estado");e.textContent=m;e.className="estado "+(ok?"ok":"err");}
 
-/* ---- histórico local (formato hoja DATOS) ---- */
-function guardarReg(e,tot){
-  const r=JSON.parse(localStorage.getItem("eval_reg")||"[]");
+/* ---- histórico (Firebase compartido + respaldo local, formato hoja DATOS) ---- */
+async function guardarReg(e,tot){
   const fila={NOMBRE:e.n,AREA:e.area};
   SEC.forEach(s=>{fila[s.nombre]=seccionTotal(SEC.indexOf(s)).toFixed(3);});
   fila.FORTALEZAS=$("fortalezas").value;fila.SUGERENCIAS=$("sugerencias").value;
   fila.COMPROMISOS=$("compromisos").value;fila.TOTAL=tot.toFixed(2);
+  fila.EVALUADOR=$("evalNom").value;
   fila.FECHA=$("fechaEval").value?new Date($("fechaEval").value+"T00:00").toLocaleDateString("es-CO"):new Date().toLocaleDateString("es-CO");
+  fila.ts=Date.now();
+  if(modo==="online"){
+    try{await fbDB.push(fbDB.ref(fbDB.db,FB_NODE),fila);}catch(err){}
+  }
+  const r=JSON.parse(localStorage.getItem("eval_reg")||"[]");
   r.unshift(fila);localStorage.setItem("eval_reg",JSON.stringify(r));
 }
-function pintarReg(){
-  const r=JSON.parse(localStorage.getItem("eval_reg")||"[]");
-  if(!r.length){$("regWrap").innerHTML='<p class="nota">Aún no se han guardado evaluaciones en este equipo.</p>';return;}
+async function pintarReg(){
+  let r=[];
+  if(modo==="online"){
+    try{
+      const snap=await fbDB.get(fbDB.ref(fbDB.db,FB_NODE));
+      const v=snap.val();
+      if(v) r=Object.values(v).sort((a,b)=>(b.ts||0)-(a.ts||0));
+    }catch(err){ r=JSON.parse(localStorage.getItem("eval_reg")||"[]"); }
+  } else {
+    r=JSON.parse(localStorage.getItem("eval_reg")||"[]");
+  }
+  const origen = modo==="online" ? "Firebase · compartido" : "este navegador";
+  if(!r.length){$("regWrap").innerHTML=`<p class="nota">Aún no se han guardado evaluaciones (${origen}).</p>`;return;}
   $("regWrap").innerHTML=`<table class="reg"><thead><tr><th>Nombre</th><th>Área</th><th>Total</th><th>Fecha</th></tr></thead><tbody>`+
-    r.map(x=>`<tr><td>${x.NOMBRE}</td><td>${x.AREA}</td><td><b>${x.TOTAL}</b></td><td>${x.FECHA}</td></tr>`).join("")+`</tbody></table>`;
+    r.map(x=>`<tr><td>${x.NOMBRE||""}</td><td>${x.AREA||""}</td><td><b>${x.TOTAL||""}</b></td><td>${x.FECHA||""}</td></tr>`).join("")+`</tbody></table>`;
 }
-function exportCSV(){
-  const r=JSON.parse(localStorage.getItem("eval_reg")||"[]");
+async function cargarHistorico(){
+  if(modo!=="online") return JSON.parse(localStorage.getItem("eval_reg")||"[]");
+  try{
+    const snap=await fbDB.get(fbDB.ref(fbDB.db,FB_NODE));
+    const v=snap.val();
+    return v?Object.values(v).sort((a,b)=>(b.ts||0)-(a.ts||0)):[];
+  }catch(err){ return JSON.parse(localStorage.getItem("eval_reg")||"[]"); }
+}
+async function exportCSV(){
+  const r=await cargarHistorico();
   if(!r.length){alert("No hay evaluaciones guardadas.");return;}
-  const cols=["NOMBRE","AREA",...SEC.map(s=>s.nombre),"FORTALEZAS","SUGERENCIAS","COMPROMISOS","TOTAL","FECHA"];
+  const cols=["NOMBRE","AREA",...SEC.map(s=>s.nombre),"FORTALEZAS","SUGERENCIAS","COMPROMISOS","TOTAL","EVALUADOR","FECHA"];
   const head=cols.join(",");
   const rows=r.map(x=>cols.map(c=>`"${String(x[c]??"").replace(/"/g,'""')}"`).join(","));
   const a=document.createElement("a");
@@ -313,24 +394,64 @@ function exportCSV(){
   a.download="historico_evaluaciones_alenpro.csv";a.click();
 }
 
-function onGen(){
+async function onGen(){
   if($("empSel").value===""){setEstado("⚠ Selecciona el empleado evaluado.",false);return;}
   const faltan=SEC.reduce((a,s,si)=>a+s.items.filter((_,ii)=>!scores[si+"-"+ii]).length,0);
   if(faltan>0 && !confirm(`Quedan ${faltan} ítem(s) sin calificar. ¿Generar de todas formas?`))return;
   const tot=recalc();const e=EMP[$("empSel").value];
-  guardarReg(e,tot);pintarReg();
+  $("btnGen").disabled=true;
+  await guardarReg(e,tot);
+  await pintarReg();
   const nom=("FOR-TH-007_"+e.n+"_"+(new Date().toISOString().slice(0,10))).replace(/[^a-zA-Z0-9_-]/g,"_");
   descargar(htmlDoc(),nom+".html");
-  setEstado(`✓ Documento de ${e.n} generado (total ${tot.toFixed(1)}). Ábrelo y usa Ctrl+P → Guardar como PDF. Guardado también en el histórico local.`,true);
+  const dest = modo==="online" ? "Firebase (histórico compartido)" : "el respaldo local de este navegador";
+  setEstado(`✓ Documento de ${e.n} generado (total ${tot.toFixed(1)}). Ábrelo y usa Ctrl+P → Guardar como PDF. Guardado en ${dest}.`,true);
+  $("btnGen").disabled=false;
 }
 
-window.addEventListener("DOMContentLoaded",()=>{
-  llenarEmp();pintarSecciones();recalc();pintarReg();
+/* ---- autenticación ---- */
+function mostrarGate(v){ $("gate").classList.toggle("show",v); }
+function setUser(u){
+  const ub=$("userBox");
+  if(u){ ub.style.display="flex"; $("userWho").textContent=u.email; }
+  else { ub.style.display="none"; $("userWho").textContent=""; }
+}
+async function login(){
+  const em=$("loginEmail").value.trim(), pw=$("loginPass").value;
+  $("loginErr").textContent="";
+  if(!em||!pw){ $("loginErr").textContent="Escribe correo y contraseña."; return; }
+  try{
+    await fbAuth.signInWithEmailAndPassword(fbAuth.auth,em,pw);
+    $("loginPass").value="";
+  }catch(e){
+    const m={"auth/invalid-credential":"Correo o contraseña incorrectos.",
+      "auth/invalid-email":"Correo inválido.",
+      "auth/user-not-found":"Ese usuario no existe.",
+      "auth/wrong-password":"Contraseña incorrecta.",
+      "auth/too-many-requests":"Demasiados intentos. Espera un momento."};
+    $("loginErr").textContent=m[e.code]||("Error: "+e.code);
+  }
+}
+function setupAuth(){
+  fbAuth.onAuthStateChanged(fbAuth.auth, async (u)=>{
+    if(u){ mostrarGate(false); setUser(u); await pintarReg(); }
+    else { setUser(null); mostrarGate(true); }
+  });
+  $("btnLogin").addEventListener("click",login);
+  $("loginPass").addEventListener("keydown",e=>{ if(e.key==="Enter") login(); });
+  $("btnSalir").addEventListener("click",()=>fbAuth.signOut(fbAuth.auth));
+}
+
+window.addEventListener("DOMContentLoaded",async()=>{
+  llenarEmp();pintarSecciones();recalc();
   $("fechaEval").value=new Date().toISOString().slice(0,10);
   $("empSel").addEventListener("change",pintarEmp);
   $("btnGen").addEventListener("click",onGen);
   $("btnCsv").addEventListener("click",exportCSV);
-  $("btnClr").addEventListener("click",()=>{if(confirm("¿Borrar las evaluaciones guardadas en este navegador?")){localStorage.removeItem("eval_reg");pintarReg();}});
+  $("btnClr").addEventListener("click",async()=>{if(confirm("¿Borrar SOLO el respaldo local de este navegador? (El histórico de Firebase no se toca)")){localStorage.removeItem("eval_reg");await pintarReg();}});
+  await initFirebase();
+  if(modo==="online" && fbAuth){ setupAuth(); }   // el gate se cierra al autenticar (onAuthStateChanged)
+  else { await pintarReg(); }                      // modo local: sin login, datos solo locales
 });
 </script>
 </body></html>
