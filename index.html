@@ -74,6 +74,11 @@ body{font-family:Arial,Helvetica,sans-serif;background:#f4f4f2;color:#1a1a1a;fon
 .btn-gen:disabled{opacity:.45;cursor:not-allowed}
 .row-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
 .btn-sec{padding:9px 14px;background:#fff;color:#444;border:1.5px solid #ccc;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial}
+.btn-mini{padding:4px 9px;margin:0 2px;background:#fff;color:#444;border:1.5px solid #ccc;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:Arial}
+.btn-mini:hover{background:#f5f5f5;border-color:#FFD400}
+.btn-mini.danger{color:#c62828;border-color:#f3b3b3}
+.btn-mini.danger:hover{background:#ffebee;border-color:#c62828}
+.empadmin-form .grid3,.empadmin-form .grid2{margin-bottom:0}
 .btn-sec:hover{background:#f5f5f5}
 .nota{font-size:12px;color:#888;line-height:1.6}
 .estado{margin-top:10px;padding:10px 14px;border-radius:8px;font-size:13px;display:none}
@@ -158,8 +163,32 @@ table.reg td{padding:6px 8px;border:1px solid #ddd;vertical-align:top}
     <div class="field"><label>Compromisos por parte del empleado</label><textarea id="compromisos" rows="3" placeholder="Compromisos acordados…"></textarea></div>
   </div>
 
+  <details class="card" id="adminEmpCard">
+    <summary style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#555;cursor:pointer;list-style:none">5 · Gestión de empleados <span style="font-weight:400;text-transform:none;color:#888">— retiros, correcciones, nuevos ingresos</span></summary>
+    <div style="height:2px;background:#FFD400;margin:8px 0 16px"></div>
+    <p class="nota" style="margin-bottom:12px">Los marcados como <b>Retiro</b> salen del desplegable de evaluación pero permanecen en los registros. La antigüedad se calcula sola desde la fecha de ingreso.</p>
+    <div class="tbl-wrap" id="empAdminWrap"></div>
+    <div class="empadmin-form" style="border-top:1px solid #eee;margin-top:16px;padding-top:14px">
+      <div class="card-title" id="empFormTitulo" style="border:none;padding:0;margin-bottom:12px">➕ Nuevo empleado</div>
+      <div class="field"><label>Nombre completo</label><input type="text" id="efNombre" placeholder="APELLIDOS NOMBRES"></div>
+      <div class="grid3">
+        <div class="field"><label>Área</label><input type="text" id="efArea" placeholder="Ej. PRODUCCION"></div>
+        <div class="field"><label>Cargo</label><input type="text" id="efCargo" placeholder="Cargo"></div>
+        <div class="field"><label>Género</label><select id="efGen"><option value="">—</option><option value="F">Femenino</option><option value="M">Masculino</option></select></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Edad</label><input type="number" id="efEdad" min="16" max="99" placeholder="Años"></div>
+        <div class="field"><label>Fecha de ingreso</label><input type="date" id="efIng"></div>
+      </div>
+      <div class="row-btns">
+        <button class="btn-sec" id="btnEmpGuardar" style="background:#FFD400;border-color:#FFD400;color:#1a1a1a">Guardar empleado</button>
+        <button class="btn-sec" id="btnEmpCancelar" style="display:none">Cancelar</button>
+      </div>
+    </div>
+  </details>
+
   <div class="card">
-    <div class="card-title">5 · Evaluaciones guardadas</div>
+    <div class="card-title">6 · Evaluaciones guardadas</div>
     <div class="tbl-wrap" id="regWrap"><p class="nota">Aún no se han guardado evaluaciones en este equipo.</p></div>
     <div class="row-btns">
       <button class="btn-sec" id="btnCsv">Exportar CSV (histórico)</button>
@@ -181,12 +210,13 @@ table.reg td{padding:6px 8px;border:1px solid #ddd;vertical-align:top}
 </div>
 
 <script>
-const EMP=[{"n": "ALVAREZ DIAZ MARYORY", "area": "ADMON", "cargo": "DIRECTORA DE CONTABILIDAD", "gen": "F", "edad": 49, "ing": "01/01/2024", "ant": "2AÑOS,5MESES,19DIAS"}, {"n": "CASTILLO ORDOÑEZ CARLOS ANTONIO", "area": "PRODUCCION", "cargo": "OPERARIO DE PRODUCCIÓN, micro y preparacion", "gen": "M", "edad": 50, "ing": "01/09/2020", "ant": "5AÑOS,9MESES,19DIAS"}, {"n": "COLORADO ESCOBAR JONATHAN", "area": "PRODUCCION", "cargo": "OPERARIO DE PRODUCCIÓN, extrucion 1 y 2, extraccion ymicro", "gen": "M", "edad": 24, "ing": "11/04/2023", "ant": "3AÑOS,2MESES,9DIAS"}, {"n": "CORRALES MUÑOZ ERICA YULIANA", "area": "CALIDAD", "cargo": "AUXILIAR DE CALIDAD", "gen": "F", "edad": 37, "ing": "01/02/2023", "ant": "3AÑOS,4MESES,19DIAS"}, {"n": "ESCOBAR MONTOYA JOSE GILBERTO", "area": "CIF", "cargo": "PORTERO", "gen": "M", "edad": 61, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "GARCIA OSPINA JUAN CARLOS", "area": "PRODUCCION", "cargo": "DIRECTOR DE PRODUCCIÓN Y COMPRAS", "gen": "M", "edad": 48, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "GARCIA PELAEZ VALENTINA", "area": "CALIDAD", "cargo": "ANALISTA DE LABORATORIO", "gen": "F", "edad": 29, "ing": "07/01/2025", "ant": "1AÑOS,5MESES,13DIAS"}, {"n": "GARZON GRISALES FRANCISCO JAVIER", "area": "CIF", "cargo": "PORTERO", "gen": "M", "edad": 57, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "GARZON RINCON TATIANA", "area": "ADMON", "cargo": "DIRECTORA SGSST Y AMBIENTAL", "gen": "F", "edad": 23, "ing": "29/06/2024", "ant": "1AÑOS,11MESES,22DIAS"}, {"n": "GUTIERREZ VASQUEZ RODRIGO DE JESUS", "area": "ADMON", "cargo": "GERENTE", "gen": "M", "edad": 60, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "GUTIERREZ VELASQUEZ DANIELA", "area": "ADMON", "cargo": "CONTROL INTERNO", "gen": "F", "edad": 32, "ing": "18/02/2021", "ant": "5AÑOS,4MESES,2DIAS"}, {"n": "GUTIERREZ VELASQUEZ SAMUEL", "area": "COMERCIAL", "cargo": "DIRECTOR COMERCIAL", "gen": "M", "edad": 33, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "HERNANDEZ RAMIREZ SANTIAGO", "area": "PRODUCCION", "cargo": "OPERARIO DE PRODUCCION, Extrusion", "gen": "M", "edad": 23, "ing": "01/02/2024", "ant": "2AÑOS,4MESES,19DIAS"}, {"n": "JIMENEZ RUIZ JAVIER ANTONIO", "area": "CIF", "cargo": "PORTERO", "gen": "M", "edad": 46, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "MARULANDA MENDEZ BRAHIAN ANIBAL", "area": "PRODUCCION", "cargo": "SUPERVISOR DE PRODUCCIÓN", "gen": "M", "edad": 25, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "MAZUERA CASTILLO ANA MILENA", "area": "ADMON", "cargo": "DIRECTORA ADMINISTRATIVA Y FINANCIERA", "gen": "F", "edad": 43, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "MERCHAN JUAN CARLOS", "area": "CIF", "cargo": "PORTERO", "gen": "M", "edad": 59, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "MESA ORTIZ MONICA LILIANA", "area": "ADMON", "cargo": "AUXILIAR SERVICIOS GENERALES OFICINA", "gen": "F", "edad": 56, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "OBANDO CARDOZA MARIA ALEJANDRA", "area": "ADMON", "cargo": "DIRECTORA DE TALENTO HUMANO", "gen": "F", "edad": 27, "ing": "01/04/2024", "ant": "2AÑOS,2MESES,19DIAS"}, {"n": "OCAMPO SANCHEZ LINA MARCELA", "area": "CALIDAD", "cargo": "DIRECTOR DE CALIDAD", "gen": "F", "edad": 33, "ing": "04/09/2023", "ant": "2AÑOS,9MESES,16DIAS"}, {"n": "RENDON CONTRERAS JEIFER", "area": "PRODUCCION", "cargo": "SUPERVISOR DE PRODUCCIÓN", "gen": "M", "edad": 29, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "RIOS SANCHEZ CRISTIAN DAVID", "area": "PRODUCCION", "cargo": "SUPERVISOR DE PRODUCCIÓN", "gen": "M", "edad": 34, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "VELEZ PULGARIN CLAUDIA BERENICE", "area": "PRODUCCION", "cargo": "OPERARIO DE BASCULA", "gen": "F", "edad": 40, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}];
+let EMP=[]; const EMP_SEED=[{"n": "ALVAREZ DIAZ MARYORY", "area": "ADMON", "cargo": "DIRECTORA DE CONTABILIDAD", "gen": "F", "edad": 49, "ing": "01/01/2024", "ant": "2AÑOS,5MESES,19DIAS"}, {"n": "CASTILLO ORDOÑEZ CARLOS ANTONIO", "area": "PRODUCCION", "cargo": "OPERARIO DE PRODUCCIÓN, micro y preparacion", "gen": "M", "edad": 50, "ing": "01/09/2020", "ant": "5AÑOS,9MESES,19DIAS"}, {"n": "COLORADO ESCOBAR JONATHAN", "area": "PRODUCCION", "cargo": "OPERARIO DE PRODUCCIÓN, extrucion 1 y 2, extraccion ymicro", "gen": "M", "edad": 24, "ing": "11/04/2023", "ant": "3AÑOS,2MESES,9DIAS"}, {"n": "CORRALES MUÑOZ ERICA YULIANA", "area": "CALIDAD", "cargo": "AUXILIAR DE CALIDAD", "gen": "F", "edad": 37, "ing": "01/02/2023", "ant": "3AÑOS,4MESES,19DIAS"}, {"n": "ESCOBAR MONTOYA JOSE GILBERTO", "area": "CIF", "cargo": "PORTERO", "gen": "M", "edad": 61, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "GARCIA OSPINA JUAN CARLOS", "area": "PRODUCCION", "cargo": "DIRECTOR DE PRODUCCIÓN Y COMPRAS", "gen": "M", "edad": 48, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "GARCIA PELAEZ VALENTINA", "area": "CALIDAD", "cargo": "ANALISTA DE LABORATORIO", "gen": "F", "edad": 29, "ing": "07/01/2025", "ant": "1AÑOS,5MESES,13DIAS"}, {"n": "GARZON GRISALES FRANCISCO JAVIER", "area": "CIF", "cargo": "PORTERO", "gen": "M", "edad": 57, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "GARZON RINCON TATIANA", "area": "ADMON", "cargo": "DIRECTORA SGSST Y AMBIENTAL", "gen": "F", "edad": 23, "ing": "29/06/2024", "ant": "1AÑOS,11MESES,22DIAS"}, {"n": "GUTIERREZ VASQUEZ RODRIGO DE JESUS", "area": "ADMON", "cargo": "GERENTE", "gen": "M", "edad": 60, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "GUTIERREZ VELASQUEZ DANIELA", "area": "ADMON", "cargo": "CONTROL INTERNO", "gen": "F", "edad": 32, "ing": "18/02/2021", "ant": "5AÑOS,4MESES,2DIAS"}, {"n": "GUTIERREZ VELASQUEZ SAMUEL", "area": "COMERCIAL", "cargo": "DIRECTOR COMERCIAL", "gen": "M", "edad": 33, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "HERNANDEZ RAMIREZ SANTIAGO", "area": "PRODUCCION", "cargo": "OPERARIO DE PRODUCCION, Extrusion", "gen": "M", "edad": 23, "ing": "01/02/2024", "ant": "2AÑOS,4MESES,19DIAS"}, {"n": "JIMENEZ RUIZ JAVIER ANTONIO", "area": "CIF", "cargo": "PORTERO", "gen": "M", "edad": 46, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "MARULANDA MENDEZ BRAHIAN ANIBAL", "area": "PRODUCCION", "cargo": "SUPERVISOR DE PRODUCCIÓN", "gen": "M", "edad": 25, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "MAZUERA CASTILLO ANA MILENA", "area": "ADMON", "cargo": "DIRECTORA ADMINISTRATIVA Y FINANCIERA", "gen": "F", "edad": 43, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "MERCHAN JUAN CARLOS", "area": "CIF", "cargo": "PORTERO", "gen": "M", "edad": 59, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "MESA ORTIZ MONICA LILIANA", "area": "ADMON", "cargo": "AUXILIAR SERVICIOS GENERALES OFICINA", "gen": "F", "edad": 56, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "OBANDO CARDOZA MARIA ALEJANDRA", "area": "ADMON", "cargo": "DIRECTORA DE TALENTO HUMANO", "gen": "F", "edad": 27, "ing": "01/04/2024", "ant": "2AÑOS,2MESES,19DIAS"}, {"n": "OCAMPO SANCHEZ LINA MARCELA", "area": "CALIDAD", "cargo": "DIRECTOR DE CALIDAD", "gen": "F", "edad": 33, "ing": "04/09/2023", "ant": "2AÑOS,9MESES,16DIAS"}, {"n": "RENDON CONTRERAS JEIFER", "area": "PRODUCCION", "cargo": "SUPERVISOR DE PRODUCCIÓN", "gen": "M", "edad": 29, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "RIOS SANCHEZ CRISTIAN DAVID", "area": "PRODUCCION", "cargo": "SUPERVISOR DE PRODUCCIÓN", "gen": "M", "edad": 34, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}, {"n": "VELEZ PULGARIN CLAUDIA BERENICE", "area": "PRODUCCION", "cargo": "OPERARIO DE BASCULA", "gen": "F", "edad": 40, "ing": "01/02/2020", "ant": "6AÑOS,4MESES,19DIAS"}];
 const SEC=[{"nombre": "Responsabilidad y Compromiso", "items": ["Cumple con las tareas asignadas en tiempo y forma", "Muestra compromiso con los objetivos del equipo y de la empresa", "Es responsable con el uso de los recursos y el tiempo de la empresa", "Cumple con las normativas y políticas de la empresa", "Demuestra proactividad para resolver problemas y superar obstáculos"]}, {"nombre": "Calidad y Productividad", "items": ["El empleado mantiene altos estándares de calidad en su trabajo", "Es eficiente en la ejecución de sus tareas diarias", "Realiza el trabajo sin necesidad de correcciones constantes", "Es capaz de manejar adecuadamente su carga de trabajo sin comprometer la calidad", "Demuestra iniciativa."]}, {"nombre": "Adaptabilidad y Flexibilidad", "items": ["Se adapta bien a los cambios en los procesos o tareas", "Muestra flexibilidad ante nuevas responsabilidades o situaciones imprevistas", "Es capaz de gestionar múltiples tareas o prioridades sin perder eficiencia", "Acepta bien las críticas constructivas y las utiliza para mejorar", "Identifica áreas de mejora personal y profesional y trabaja en ellas"]}, {"nombre": "Trabajo en Equipo", "items": ["Colabora de manera efectiva con otros miembros del equipo", "Apoya y contribuye activamente a un ambiente de trabajo armonioso", "Comparte su conocimiento y experiencia con los demás cuando es necesario", "Participa activamente en las reuniones o discusiones de equipo", "Está dispuesto a hacer un esfuerzo adicional cuando es necesario.", "Ayuda a mantener un ambiente de trabajo armonioso y colaborativo"]}, {"nombre": "Comunicación", "items": ["Se comunica de manera clara y efectiva con sus compañeros y superiores", "Escucha atentamente las instrucciones y sugerencias, y actúa en consecuencia", "Hace preguntas o busca clarificaciones cuando algo no está claro", "Informa adecuadamente a sus superiores y compañeros sobre el progreso de su trabajo", "Fomenta un diálogo abierto y directo en su entorno laboral"]}, {"nombre": "Mejora Continua", "items": ["El empleado busca activamente formas de mejorar su rendimiento o el del equipo", "Propone nuevas ideas o soluciones para mejorar los procesos", "Demuestra iniciativa para asumir nuevas responsabilidades", "Busca activamente retroalimentación para mejorar su desempeño", "Mantiene una actitud positiva y proactiva en su trabajo diario.", "Se adapta con facilidad a nuevos procesos, tareas, directrices y normativas."]}, {"nombre": "Resolución de Problemas", "items": ["Identifica y aborda los problemas con rapidez y eficacia", "Busca soluciones creativas o alternativas ante un obstáculo", "Es capaz de gestionar problemas urgentes sin afectar negativamente el flujo de trabajo", "Colabora con otros para encontrar soluciones cuando es necesario", "Demuestra flexibilidad y apertura al cambio en situaciones imprevistas.", "Mantiene la calma y el control en situaciones complejas.", "Considera las implicaciones de sus acciones antes de ejecutarlas."]}, {"nombre": "Enfoque a Resultados", "items": ["El empleado logra cumplir con los objetivos individuales y del equipo", "Es capaz de trabajar de manera consistente para alcanzar los resultados esperados", "Demuestra persistencia y enfoque para superar desafíos y lograr metas", "Demuestra compromiso con el logro de metas individuales y organizacionales.", "Tiene acabativa en las tareas"]}];
 const PESO=0.456;
 /* ===== Firebase (proyecto alenpro-inventario, nodo evaluaciones_desempeno) ===== */
 const FB_URL="https://alenpro-inventario-default-rtdb.firebaseio.com";
 const FB_NODE="evaluaciones_desempeno";
+const FB_EMP="empleados_matriz";
 /* === Pega aquí la config de tu app web Firebase (Configuración del proyecto → Tus apps → SDK) === */
 const FB_API_KEY="AIzaSyB7KbW_QX-ymuRxwNh9byx6hICLEUcRpKE";
 const FB_AUTH_DOMAIN="alenpro-inventario.firebaseapp.com";
@@ -223,9 +253,51 @@ function nivelDe(t){
   return["Sin calificar","#888"];
 }
 
+/* ---- helpers de fecha / antigüedad ---- */
+function parseFecha(s){
+  if(!s) return null;
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)){const[y,m,d]=s.slice(0,10).split("-");return new Date(+y,+m-1,+d);}
+  const m=String(s).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  return m?new Date(+m[3],+m[2]-1,+m[1]):null;
+}
+function fmtFecha(s){const d=parseFecha(s);return d?String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear():(s||"");}
+function isoFecha(s){const d=parseFecha(s);return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`:"";}
+function antiguedad(s){
+  const d=parseFecha(s); if(!d) return "";
+  const h=new Date(); let y=h.getFullYear()-d.getFullYear(), m=h.getMonth()-d.getMonth(), dd=h.getDate()-d.getDate();
+  if(dd<0){m--; dd+=new Date(h.getFullYear(),h.getMonth(),0).getDate();}
+  if(m<0){y--; m+=12;}
+  return `${y} años, ${m} meses, ${dd} días`;
+}
+
+/* ---- carga / guardado de empleados (Firebase + local) ---- */
+async function cargarEmpleados(){
+  let data=null;
+  if(modo==="online" && fbDB){
+    try{
+      const snap=await fbDB.get(fbDB.ref(fbDB.db,FB_EMP));
+      const v=snap.val();
+      if(v){ data=Array.isArray(v)?v:Object.values(v); }
+      else { data=EMP_SEED.map(e=>({...e,activo:true})); await fbDB.set(fbDB.ref(fbDB.db,FB_EMP),data); }
+    }catch(err){ data=JSON.parse(localStorage.getItem("eval_emp")||"null"); }
+  } else {
+    data=JSON.parse(localStorage.getItem("eval_emp")||"null");
+  }
+  EMP = data || EMP_SEED.map(e=>({...e,activo:true}));
+  localStorage.setItem("eval_emp",JSON.stringify(EMP));
+}
+async function guardarEmpleados(){
+  localStorage.setItem("eval_emp",JSON.stringify(EMP));
+  if(modo==="online" && fbDB){
+    try{ await fbDB.set(fbDB.ref(fbDB.db,FB_EMP),EMP); }
+    catch(err){ alert("No se pudo guardar en Firebase ("+(err.code||err.message)+"). El cambio quedó solo en este equipo."); }
+  }
+}
+
 function llenarEmp(){
   $("empSel").innerHTML='<option value="">— Selecciona un empleado —</option>'+
-    EMP.map((e,i)=>`<option value="${i}">${e.n}</option>`).join("");
+    EMP.map((e,i)=>({e,i})).filter(o=>o.e.activo!==false)
+      .map(o=>`<option value="${o.i}">${o.e.n}</option>`).join("");
 }
 function pintarEmp(){
   const i=$("empSel").value;
@@ -234,7 +306,58 @@ function pintarEmp(){
   const e=EMP[i];
   set("aArea",e.area);set("aCargo",e.cargo);
   set("aGen",e.gen==="F"?"Femenino":e.gen==="M"?"Masculino":e.gen);
-  set("aEdad",e.edad?e.edad+" años":"");set("aIng",e.ing);set("aAnt",e.ant);
+  set("aEdad",e.edad?e.edad+" años":"");set("aIng",fmtFecha(e.ing));set("aAnt",antiguedad(e.ing));
+}
+
+/* ---- panel de gestión de empleados ---- */
+let empEditIdx=-1;
+function renderEmpAdmin(){
+  const w=$("empAdminWrap"); if(!w) return;
+  if(!EMP.length){w.innerHTML='<p class="nota">Sin empleados cargados.</p>';return;}
+  w.innerHTML=`<table class="reg"><thead><tr><th>Nombre</th><th>Área</th><th>Cargo</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>`+
+    EMP.map((e,i)=>`<tr>
+      <td>${e.n||""}</td><td>${e.area||""}</td><td>${e.cargo||""}</td>
+      <td>${e.activo===false?'<span style="color:#c62828;font-weight:700">Retiro</span>':'<span style="color:#2e7d32;font-weight:700">Activo</span>'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn-mini" data-act="edit" data-i="${i}">Editar</button>
+        <button class="btn-mini" data-act="toggle" data-i="${i}">${e.activo===false?'Reactivar':'Retiro'}</button>
+        <button class="btn-mini danger" data-act="del" data-i="${i}">Eliminar</button>
+      </td></tr>`).join("")+`</tbody></table>`;
+  w.querySelectorAll("button[data-act]").forEach(b=>b.addEventListener("click",()=>empAccion(b.dataset.act,+b.dataset.i)));
+}
+async function persistEmp(){ await guardarEmpleados(); llenarEmp(); renderEmpAdmin(); }
+function empFormReset(){
+  empEditIdx=-1;
+  ["efNombre","efArea","efCargo","efEdad","efIng"].forEach(id=>$(id).value="");
+  $("efGen").value="";
+  $("empFormTitulo").textContent="➕ Nuevo empleado";
+  $("btnEmpCancelar").style.display="none";
+}
+function empAccion(act,i){
+  const e=EMP[i];
+  if(act==="edit"){
+    empEditIdx=i;
+    $("efNombre").value=e.n||"";$("efArea").value=e.area||"";$("efCargo").value=e.cargo||"";
+    $("efGen").value=e.gen||"";$("efEdad").value=e.edad||"";$("efIng").value=isoFecha(e.ing);
+    $("empFormTitulo").textContent="✏ Editando: "+e.n;
+    $("btnEmpCancelar").style.display="inline-block";
+    $("empFormTitulo").scrollIntoView({behavior:"smooth",block:"center"});
+  } else if(act==="toggle"){
+    EMP[i].activo = (e.activo===false); persistEmp();
+  } else if(act==="del"){
+    if(confirm(`¿Eliminar definitivamente a ${e.n}?\n\nSi solo se retiró, usa "Retiro" para conservarlo en los registros.`)){
+      EMP.splice(i,1); if(empEditIdx===i) empFormReset(); persistEmp();
+    }
+  }
+}
+async function empGuardar(){
+  const n=$("efNombre").value.trim();
+  if(!n){alert("El nombre es obligatorio.");return;}
+  const obj={n,area:$("efArea").value.trim(),cargo:$("efCargo").value.trim(),
+    gen:$("efGen").value,edad:parseInt($("efEdad").value)||"",ing:$("efIng").value||"",activo:true};
+  if(empEditIdx>=0){ obj.activo=(EMP[empEditIdx].activo!==false); EMP[empEditIdx]=obj; }
+  else { EMP.push(obj); }
+  await persistEmp(); empFormReset();
 }
 
 function pintarSecciones(){
@@ -319,7 +442,7 @@ h3{font-size:9.5pt;margin:12px 0 3px;background:#00B050;color:#fff;padding:4px 7
   <tr><td><b>Nombre:</b> ${$("evalNom").value||""}</td><td colspan="3"><b>Cargo:</b> ${$("evalCargo").value||""}</td></tr>
   <tr><td class="lbl" colspan="4">DATOS DEL EVALUADO</td></tr>
   <tr><td><b>Nombre:</b> ${e.n}</td><td><b>Área:</b> ${e.area}</td><td colspan="2"><b>Cargo:</b> ${e.cargo}</td></tr>
-  <tr><td><b>Edad:</b> ${e.edad?e.edad+" años":""}</td><td><b>Género:</b> ${e.gen}</td><td><b>Ingreso:</b> ${e.ing}</td><td><b>Antigüedad:</b> ${e.ant}</td></tr>
+  <tr><td><b>Edad:</b> ${e.edad?e.edad+" años":""}</td><td><b>Género:</b> ${e.gen}</td><td><b>Ingreso:</b> ${fmtFecha(e.ing)}</td><td><b>Antigüedad:</b> ${antiguedad(e.ing)}</td></tr>
 </table>
 <table>
   <tr><th>CRITERIO</th><th>CALIF. (1-5)</th><th>PUNTAJE</th></tr>
@@ -434,7 +557,7 @@ async function login(){
 }
 function setupAuth(){
   fbAuth.onAuthStateChanged(fbAuth.auth, async (u)=>{
-    if(u){ mostrarGate(false); setUser(u); await pintarReg(); }
+    if(u){ mostrarGate(false); setUser(u); await cargarEmpleados(); llenarEmp(); renderEmpAdmin(); await pintarReg(); }
     else { setUser(null); mostrarGate(true); }
   });
   $("btnLogin").addEventListener("click",login);
@@ -443,15 +566,18 @@ function setupAuth(){
 }
 
 window.addEventListener("DOMContentLoaded",async()=>{
-  llenarEmp();pintarSecciones();recalc();
+  EMP=EMP_SEED.map(e=>({...e,activo:true}));
+  llenarEmp();pintarSecciones();recalc();renderEmpAdmin();
   $("fechaEval").value=new Date().toISOString().slice(0,10);
   $("empSel").addEventListener("change",pintarEmp);
   $("btnGen").addEventListener("click",onGen);
   $("btnCsv").addEventListener("click",exportCSV);
   $("btnClr").addEventListener("click",async()=>{if(confirm("¿Borrar SOLO el respaldo local de este navegador? (El histórico de Firebase no se toca)")){localStorage.removeItem("eval_reg");await pintarReg();}});
+  $("btnEmpGuardar").addEventListener("click",empGuardar);
+  $("btnEmpCancelar").addEventListener("click",empFormReset);
   await initFirebase();
   if(modo==="online" && fbAuth){ setupAuth(); }   // el gate se cierra al autenticar (onAuthStateChanged)
-  else { await pintarReg(); }                      // modo local: sin login, datos solo locales
+  else { await cargarEmpleados(); llenarEmp(); renderEmpAdmin(); await pintarReg(); }  // modo local
 });
 </script>
 </body></html>
