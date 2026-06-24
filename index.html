@@ -260,19 +260,12 @@ const scores={}; // "s-i" -> valor
 const TOTMAX=5; // escala 0 a 5
 
 function nivelDe(t){
-  if(t>4.5)return["Excelente","#00B050"];
-  if(t>3.5)return["Bueno","#5DCAA5"];
-  if(t>2.5)return["Aceptable","#BA7517"];
-  if(t>1.5)return["Regular","#D85A30"];
-  if(t>0)   return["Deficiente","#A32D2D"];
-  return["Sin calificar","#888"];
-}
-function nivelBadge(t){
-  if(t<=1.5)return["Deficiente","#c62828","#fff"];
-  if(t<=2.5)return["Regular","#ef6c00","#fff"];
-  if(t<=3.5)return["Aceptable","#f9a825","#1a1a1a"];
-  if(t<=4.5)return["Bueno","#2e7d32","#fff"];
-  return["Excelente","#1b5e20","#fff"];
+  if(t<=0)return["Sin calificar","#888","#fff"];
+  if(t>=0 && t<1.6)return["Deficiente","#c62828","#fff"];
+  if(t>=1.6 && t<2.6)return["Regular","#ef6c00","#fff"];
+  if(t>=2.6 && t<3.6)return["Aceptable","#f9a825","#1a1a1a"];
+  if(t>=3.6 && t<4.6)return["Bueno","#2e7d32","#fff"];
+  return["Excelente","#1b5e20","#fff"]; // t>=4.6
 }
 
 /* ---- helpers de fecha / antigüedad ---- */
@@ -423,8 +416,8 @@ function recalc(){
   const tot=totalProm();
   $("totVal").textContent=tot.toFixed(1);
   $("totProg").style.width=Math.min(100,tot/TOTMAX*100)+"%";
-  const[txt,col]=nivelDe(tot);
-  const nv=$("totNivel");nv.textContent=txt;nv.style.background=col;nv.style.color="#fff";
+  const[txt,col,txtCol]=nivelDe(tot);
+  const nv=$("totNivel");nv.textContent=txt;nv.style.background=col;nv.style.color=txtCol;
   return tot;
 }
 
@@ -530,7 +523,7 @@ async function pintarReg(){
   if(!r.length){$("regWrap").innerHTML=`<p class="nota">Aún no se han guardado evaluaciones (${origen}).</p>`;return;}
   $("regWrap").innerHTML=r.map(x=>{
     const tot=parseFloat(x.TOTAL)||0;
-    const[txt,bg,color]=nivelBadge(tot);
+    const[txt,bg,color]=nivelDe(tot);
     return `<div class="histcard">
       <div class="histcard-top">
         <div class="histcard-name">${x.NOMBRE||""}</div>
