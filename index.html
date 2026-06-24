@@ -259,13 +259,14 @@ const scores={}; // "s-i" -> valor
 
 const TOTMAX=5; // escala 0 a 5
 
-function nivelDe(t){
+function nivelDe(tRaw){
+  const t=Math.round(tRaw*10)/10; // precisión decimal: evita errores de punto flotante justo en los límites (ej. 4.6 guardado como 4.599999999999999)
   if(t<=0)return["Sin calificar","#888","#fff"];
-  if(t>=0 && t<1.6)return["Deficiente","#c62828","#fff"];
-  if(t>=1.6 && t<2.6)return["Regular","#ef6c00","#fff"];
-  if(t>=2.6 && t<3.6)return["Aceptable","#f9a825","#1a1a1a"];
-  if(t>=3.6 && t<4.6)return["Bueno","#2e7d32","#fff"];
-  return["Excelente","#1b5e20","#fff"]; // t>=4.6
+  if(t>=4.6)return["Excelente","#1b5e20","#fff"];
+  if(t>=3.6)return["Bueno","#2e7d32","#fff"];
+  if(t>=2.6)return["Aceptable","#f9a825","#1a1a1a"];
+  if(t>=1.6)return["Regular","#ef6c00","#fff"];
+  return["Deficiente","#c62828","#fff"];
 }
 
 /* ---- helpers de fecha / antigüedad ---- */
