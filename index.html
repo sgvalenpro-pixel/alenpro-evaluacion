@@ -252,10 +252,10 @@ const scores={}; // "s-i" -> valor
 const TOTMAX=5; // escala 0 a 5
 
 function nivelDe(t){
-  if(t>=4.5)return["Excelente","#00B050"];
-  if(t>=3.5)return["Muy bueno","#5DCAA5"];
-  if(t>=2.5)return["Bueno","#BA7517"];
-  if(t>=1.5)return["Regular","#D85A30"];
+  if(t>4.5)return["Excelente","#00B050"];
+  if(t>3.5)return["Bueno","#5DCAA5"];
+  if(t>2.5)return["Aceptable","#BA7517"];
+  if(t>1.5)return["Regular","#D85A30"];
   if(t>0)   return["Deficiente","#A32D2D"];
   return["Sin calificar","#888"];
 }
