@@ -89,6 +89,11 @@ table.reg{width:100%;border-collapse:collapse;font-size:12px;min-width:560px}
 table.reg th{background:#fff6cc;font-size:11px;text-transform:uppercase;padding:7px 8px;border:1px solid #ddd;text-align:left}
 table.reg td{padding:6px 8px;border:1px solid #ddd;vertical-align:top}
 .tbl-wrap{overflow-x:auto}
+.histcard{border:1px solid #e3e3e3;border-radius:10px;padding:12px 14px;margin-bottom:10px;background:#fafaf8}
+.histcard-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.histcard-name{font-weight:700;font-size:14px}
+.histcard-meta{font-size:12px;color:#777;margin:4px 0 8px}
+.badge{display:inline-block;padding:4px 12px;border-radius:14px;font-size:12.5px;font-weight:700;font-family:'Courier New',monospace}
 @media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}.item{flex-direction:column;align-items:stretch}.scale{justify-content:center}.scale-legend{display:none}.totalbar{flex-wrap:wrap;gap:8px}.btn-gen{width:100%;margin-left:0}.prog{order:5;width:100%}}
 </style>
 </head>
@@ -197,6 +202,9 @@ table.reg td{padding:6px 8px;border:1px solid #ddd;vertical-align:top}
 
   <div class="card">
     <div class="card-title">6 · Evaluaciones guardadas</div>
+    <div class="row-btns" style="margin-bottom:12px">
+      <button class="btn-sec" id="btnBorrarTodos" style="color:#c62828;border-color:#c62828">🗑 Borrar todos los registros</button>
+    </div>
     <div class="tbl-wrap" id="regWrap"><p class="nota">Aún no se han guardado evaluaciones en este equipo.</p></div>
     <div class="row-btns">
       <button class="btn-sec" id="btnCsv">Exportar CSV (histórico)</button>
@@ -258,6 +266,13 @@ function nivelDe(t){
   if(t>1.5)return["Regular","#D85A30"];
   if(t>0)   return["Deficiente","#A32D2D"];
   return["Sin calificar","#888"];
+}
+function nivelBadge(t){
+  if(t<=1.5)return["Deficiente","#c62828","#fff"];
+  if(t<=2.5)return["Regular","#ef6c00","#fff"];
+  if(t<=3.5)return["Aceptable","#f9a825","#1a1a1a"];
+  if(t<=4.5)return["Bueno","#2e7d32","#fff"];
+  return["Excelente","#1b5e20","#fff"];
 }
 
 /* ---- helpers de fecha / antigüedad ---- */
@@ -513,8 +528,47 @@ async function pintarReg(){
   }
   const origen = modo==="online" ? "Firebase · compartido" : "este navegador";
   if(!r.length){$("regWrap").innerHTML=`<p class="nota">Aún no se han guardado evaluaciones (${origen}).</p>`;return;}
-  $("regWrap").innerHTML=`<table class="reg"><thead><tr><th>Nombre</th><th>Área</th><th>Total</th><th>Fecha</th></tr></thead><tbody>`+
-    r.map(x=>`<tr><td>${x.NOMBRE||""}</td><td>${x.AREA||""}</td><td><b>${x.TOTAL||""}</b></td><td>${x.FECHA||""}</td></tr>`).join("")+`</tbody></table>`;
+  $("regWrap").innerHTML=r.map(x=>{
+    const tot=parseFloat(x.TOTAL)||0;
+    const[txt,bg,color]=nivelBadge(tot);
+    return `<div class="histcard">
+      <div class="histcard-top">
+        <div class="histcard-name">${x.NOMBRE||""}</div>
+        <button class="btn-mini danger" data-act="delreg" data-ts="${x.ts||""}">Eliminar</button>
+      </div>
+      <div class="histcard-meta">${x.AREA||""} · ${x.FECHA||""}</div>
+      <span class="badge" style="background:${bg};color:${color}">${tot.toFixed(1)} — ${txt}</span>
+    </div>`;
+  }).join("");
+  $("regWrap").querySelectorAll('button[data-act="delreg"]').forEach(b=>{
+    b.addEventListener("click",async()=>{
+      if(confirm("¿Eliminar este registro del histórico? Esta acción no se puede deshacer.")){
+        await eliminarReg(b.dataset.ts);
+        await pintarReg();
+      }
+    });
+  });
+}
+async function eliminarReg(ts){
+  if(modo==="online"){
+    try{
+      const snap=await fbDB.get(fbDB.ref(fbDB.db,FB_NODE));
+      const v=snap.val();
+      if(v){
+        const key=Object.keys(v).find(k=>String(v[k].ts)===String(ts));
+        if(key) await fbDB.remove(fbDB.ref(fbDB.db,FB_NODE+"/"+key));
+      }
+    }catch(err){}
+  }
+  const r=JSON.parse(localStorage.getItem("eval_reg")||"[]").filter(x=>String(x.ts)!==String(ts));
+  localStorage.setItem("eval_reg",JSON.stringify(r));
+}
+async function borrarTodosRegistros(){
+  if(modo==="online"){
+    try{ await fbDB.remove(fbDB.ref(fbDB.db,FB_NODE)); }catch(err){}
+  }
+  localStorage.removeItem("eval_reg");
+  await pintarReg();
 }
 async function cargarHistorico(){
   if(modo!=="online") return JSON.parse(localStorage.getItem("eval_reg")||"[]");
@@ -624,6 +678,11 @@ window.addEventListener("DOMContentLoaded",async()=>{
   $("btnLimpiar").addEventListener("click",()=>{if(confirm("¿Limpiar el formulario? Se borrarán el empleado, las calificaciones y los textos no confirmados (no afecta lo ya guardado).")) limpiarFormulario();});
   $("btnCsv").addEventListener("click",exportCSV);
   $("btnClr").addEventListener("click",async()=>{if(confirm("¿Borrar SOLO el respaldo local de este navegador? (El histórico de Firebase no se toca)")){localStorage.removeItem("eval_reg");await pintarReg();}});
+  $("btnBorrarTodos").addEventListener("click",async()=>{
+    if(!confirm("¿Borrar TODOS los registros del histórico de evaluaciones? Esta acción eliminará el historial completo."))return;
+    if(!confirm("¿Estás seguro? Esta acción no se puede deshacer."))return;
+    await borrarTodosRegistros();
+  });
   $("btnEmpGuardar").addEventListener("click",empGuardar);
   $("btnEmpCancelar").addEventListener("click",empFormReset);
   $("efBuscar").addEventListener("input",renderEmpAdmin);
